@@ -26,7 +26,7 @@ export const register = async (req, res) => {
             })
         }
 
-        const hashedPassword = bcrypt.hash(password, 10)
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         await User.create({
             username,
@@ -111,7 +111,7 @@ export const logout = async (_, res) => {
 export const getProfile = async(req, res) => {
     try {
         const userId = req.params.id
-        let user = await User.findById(userId)
+        let user = await User.findById(userId).select('-password')
 
         return res.status(200).json({
             user,
@@ -177,6 +177,68 @@ export const getSuggestedUsers = async(req, res) => {
             users: suggestedUsers,
             message: "All other users fetched"
         })
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const followOrUnfollow = async(req, res) => {
+    try {
+        const whoIsFollowing = req.id
+        const whoIsFollowed = req.params.id
+        if(whoIsFollowing === whoIsFollowed){
+            return res.status(400).json({
+                success: false,
+                message: "You cannot follow or unfollow yourself"
+            })
+        }
+
+        const user = await User.findById(whoIsFollowing)
+        const targetUser = await User.findById(whoIsFollowed)
+        if(!user || !targetUser){
+            return res.status(400).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        //now check whether we have to follow or unfollow
+        const isFollowing = user.following.includes(whoIsFollowed)
+        // if it is true means user is already followed , we have to unfollow them
+        if(isFollowing){
+            //Unfollow Logic
+            await Promise.all([
+                User.updateOne(
+                    {_id: whoIsFollowing}, 
+                    {$pull: {following: whoIsFollowed}}
+                ),
+                User.updateOne(
+                    {_id: whoIsFollowed},
+                    {$pull: {followers: whoIsFollowing}}
+                )
+            ])
+            return res.status(200).json({
+                success: true,
+                message: "Unfollowed successfully"
+            })
+        }
+        else{
+            //Follow Logic
+            await Promise.all([
+                User.updateOne(
+                    {_id: whoIsFollowing}, 
+                    {$push: {following: whoIsFollowed}}
+                ),
+                User.updateOne(
+                    {_id: whoIsFollowed},
+                    {$push: {followers: whoIsFollowing}}
+                )
+            ])
+            return res.status(200).json({
+                success: true,
+                message: "Followed successfully"
+            })
+        }
     } catch (error) {
         console.log(error)
     }
