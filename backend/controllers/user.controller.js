@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import getDataUri from '../utils/datauri.js'
 import cloudinary from '../utils/cloudinary.js'
+import { Post } from '../models/post.model.js'
 
 dotenv.config()
 
@@ -70,6 +71,21 @@ export const login = async (req, res) => {
             })
         }
 
+        const token = await jwt.sign(
+            {userId: user._id},
+            process.env.SECRET_KEY,
+            {expiresIn: "24h"}
+        )
+
+        const populatedPosts = await Promise.all(
+            user.posts.map(async (postId) => {
+                const post = await Post.findById(postId)
+                if(post.author.equals(user._id)){
+                    return post
+                }
+                return null
+            })
+        )
         user = {
             _id: user._id,
             username: user.username,
@@ -78,14 +94,9 @@ export const login = async (req, res) => {
             bio: user.bio,
             followers: user.followers,
             following: user.following,
-            posts: user.posts
+            posts: populatedPosts
         }
 
-        const token = await jwt.sign(
-            {userId: user._id},
-            process.env.SECRET_KEY,
-            {expiresIn: "24h"}
-        )
         return res.cookie('token', token, {httpOnly: true, sameSite: 'strict', maxAge: 2*24*60*60*1000}).json({
             message: `Welcome Back ${user.username}`,
             success: true,
