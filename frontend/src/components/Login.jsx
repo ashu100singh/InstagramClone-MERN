@@ -8,10 +8,9 @@ import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 
-const Signup = () => {
+const Login = () => {
 
     const [input, setInput] = useState({
-        username: '',
         email: '',
         password: ''
     })
@@ -27,17 +26,16 @@ const Signup = () => {
         e.preventDefault();
         try {
             setLoading(true)
-            const res = await axios.post('http://localhost:8000/api/v1/user/register', input, {
+            const res = await axios.post('http://localhost:8000/api/v1/user/login', input, {
                 headers: {
                     "Content-Type": 'application/json'
                 },
                 withCredentials: true
             })
             if(res.data.success){
-                navigate('/login')
+                navigate('/')
                 toast.success(res.data.message)
                 setInput({
-                    username: '',
                     email: '',
                     password: ''
                 })
@@ -58,19 +56,7 @@ const Signup = () => {
         >
             <div className='my-4'>
                 <h1 className='text-center font-bold text-xl'>Logo</h1>
-                <p className='text-center text-sm'>Signup to see photos & videos from your friends</p>
-            </div>
-            <div>
-                <Label htmlFor='username' className="font-semibold py-2">
-                    Username
-                </Label>
-                <Input
-                    type="text"
-                    name="username"
-                    value={input.username}
-                    onChange={changeEventHandler}
-                    className=' focus-visible:ring-transparent'
-                />
+                <p className='text-center text-sm'>Login to see photos & videos from your friends</p>
             </div>
             <div>
                 <Label htmlFor='email' className="font-medium py-2">
@@ -103,20 +89,20 @@ const Signup = () => {
                         <Loader2 className='mr-2 h-4 w-4 animate-spin'/>
                         Please Wait...
                     </Button>
-                ) :
+                ) : 
                 (
                     <Button type='submit'>
-                        Sign Up
+                        Login
                     </Button>
                 )
             } 
             <span className='text-center'>
-                Already have an account?&nbsp;
-                <Link 
-                    to='/login'
+                Don't have an account?&nbsp;
+                <Link
+                    to='/signup'
                     className='text-blue-700'
                 >
-                    Login
+                    Sign up
                 </Link>
             </span>
         </form>
@@ -124,4 +110,4 @@ const Signup = () => {
   )
 }
 
-export default Signup
+export default Login
