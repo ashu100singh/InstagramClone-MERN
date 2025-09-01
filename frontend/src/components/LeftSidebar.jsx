@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { setAuthUser } from "@/redux/authSlice.js";
 import CreatePost from "./CreatePost.jsx";
+import { setPosts, setSelectedPost } from "@/redux/postSlice.js";
 
 const LeftSidebar = () => {
     const navigate = useNavigate();
@@ -31,6 +32,8 @@ const LeftSidebar = () => {
             );
             if (res.data.success) {
                 dispatch(setAuthUser(null))
+                dispatch(setSelectedPost(null))
+                dispatch(setPosts([]))
                 navigate("/login");
                 toast.success(res.data.message);
             }
