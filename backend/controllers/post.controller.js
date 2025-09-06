@@ -3,6 +3,7 @@ import cloudinary from '../utils/cloudinary.js'
 import { Post } from '../models/post.model.js'
 import { User } from '../models/user.model.js'
 import { Comment } from '../models/comment.model.js'
+import { getReceiverSocketId, io } from '../socket/socket.js'
 
 
 export const addNewPost = async(req, res) => {
@@ -100,9 +101,10 @@ export const getUserPost = async(req, res) => {
 
 export const likePost = async(req, res) => {
     try {
-        const userId = req.id
         const postId = req.params.id
         const post = await Post.findById(postId)
+        const userId = req.id
+        const postOwnerId = post.author.toString()
         if(!post){
             return res.status(404).json({
                 success: false,
@@ -115,6 +117,20 @@ export const likePost = async(req, res) => {
         })
         await post.save()
 
+        const user = await User.findById(userId).select('username profilePicture')
+        if(postOwnerId !== userId){
+            //send a notification 
+            const notification = {
+                type: 'like',
+                userId: userId,
+                userDetails: user,
+                postId,
+                message: 'Your post is Liked'
+            }
+            const postOwnerSocketId = getReceiverSocketId(postOwnerId)
+            io.to(postOwnerSocketId).emit('notification', notification)
+        }
+
         return res.status(200).json({
             success: true,
             message: "Post liked "
@@ -126,9 +142,10 @@ export const likePost = async(req, res) => {
 
 export const dislikePost = async(req, res) => {
     try {
-        const userId = req.id
         const postId = req.params.id
         const post = await Post.findById(postId)
+        const userId = req.id
+        const postOwnerId = post.author.toString()
         if(!post){
             return res.status(404).json({
                 success: false,
@@ -140,6 +157,20 @@ export const dislikePost = async(req, res) => {
             $pull: {likes: userId}
         })
         await post.save()
+
+        const user = await User.findById(userId).select('username profilePicture')
+        if(postOwnerId !== userId){
+            //send a notification 
+            const notification = {
+                type: 'dislike',
+                userId: userId,
+                userDetails: user,
+                postId,
+                message: 'Your post was disLiked'
+            }
+            const postOwnerSocketId = getReceiverSocketId(postOwnerId)
+            io.to(postOwnerSocketId).emit('notification', notification)
+        }
 
         return res.status(200).json({
             success: true,

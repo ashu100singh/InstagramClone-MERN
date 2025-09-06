@@ -1,17 +1,18 @@
 import { Conversation } from "../models/conversation.model.js"
 import { Message } from "../models/message.model.js"
+import { getReceiverSocketId, io } from "../socket/socket.js"
 
 
 export const sendMessage = async(req, res) => {
     try {
         const senderId = req.id
         const receiverId = req.params.id
-        const {message} = req.body
+        const {textMessage:message} = req.body
 
         //Check whether they had a conversation before
         let conversation = await Conversation.findOne({
             participants: {$all: [senderId, receiverId]}
-        })
+        }).populate('messages')
         //if not started, then establish a new conversation
         if(!conversation){
             conversation = await Conversation.create({
@@ -29,6 +30,11 @@ export const sendMessage = async(req, res) => {
 
         await Promise.all([conversation.save(), newMessage.save()])
 
+        const receiverSocketId = getReceiverSocketId(receiverId)
+        if(receiverSocketId){
+            io.to(receiverSocketId).emit('newMessage', newMessage)
+        }
+
         return res.status(200).json({
             success: true,
             newMessage
@@ -43,9 +49,9 @@ export const getMessage = async(req, res) => {
     try {
         const senderId = req.id
         const receiverId = req.params.id
-        const conversation = await Conversation.find({
+        const conversation = await Conversation.findOne({
             participants: {$all: [senderId, receiverId]}
-        })
+        }).populate('messages')
         if(!conversation){
             return res.status(201).json({
                 success: true,
