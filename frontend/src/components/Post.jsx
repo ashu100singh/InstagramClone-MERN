@@ -120,6 +120,8 @@ const Post = ({ post }) => {
         }
     };
 
+    
+
     return (
         <div className="my-8 w-full min-w-sm max-w-md mx-auto">
             <div className="flex items-center justify-between">
