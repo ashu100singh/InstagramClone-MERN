@@ -20,7 +20,7 @@ const ChatPage = () => {
             if (!textMessage.trim()) return;
 
             const res = await axios.post(
-                `http://localhost:8000/api/v1/message/send/${receiverId}`,
+                `https://instagramclone-mern.onrender.com/api/v1/message/send/${receiverId}`,
                 { textMessage },
                 {
                     headers: { "Content-Type": "application/json" },
