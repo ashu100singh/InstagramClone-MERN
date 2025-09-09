@@ -161,7 +161,7 @@ const Profile = () => {
                                     )
                                 })
                             ) : (
-                                <div className="col-span-3 flex flex-col items-center justify-center py-10 text-gray-500">
+                                <div className="col-span-3 flex flex-col items-center justify-center py-9 text-gray-500">
                                     <span className="text-xl font-semibold">
                                         {activeTab === "posts"
                                         ? "No posts yet 😶"
