@@ -55,7 +55,7 @@ export const login = async (req, res) => {
             })
         }
         
-        let user = await User.findOne({email})
+        let user = await User.findOne({email}).populate('bookmarks')
         if(!user){
             return res.status(401).json({
                 message: 'Account is not created with this email, please create an account first',
@@ -94,7 +94,8 @@ export const login = async (req, res) => {
             bio: user.bio,
             followers: user.followers,
             following: user.following,
-            posts: populatedPosts
+            posts: populatedPosts,
+            bookmarks: user.bookmarks
         }
 
         return res.cookie('token', token, {httpOnly: true, sameSite: 'strict', maxAge: 2*24*60*60*1000}).json({

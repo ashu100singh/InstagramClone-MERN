@@ -14,10 +14,9 @@ const rtnSlice = createSlice({
                     (item) => item.userId === userId && item.postId === postId
                 );
                 if (!exists) {
-                    state.likeNotification.push(action.payload);
+                    state.likeNotification = [action.payload, ...state.likeNotification]; // ✅ Add latest on top
                 }
-            } 
-            else if (type === "dislike") {
+            } else if (type === "dislike") {
                 state.likeNotification = state.likeNotification.filter(
                     (item) => !(item.userId === userId && item.postId === postId)
                 );

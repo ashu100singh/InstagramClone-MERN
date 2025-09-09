@@ -80,7 +80,7 @@ export const getUserPost = async(req, res) => {
         const authorId = req.id
         const posts = await Post.find({author: authorId}).sort({createdAt:-1}).populate({
             path: 'author',
-            select: 'username profilePicture'
+            select: 'username profilePicture bookmarks'
         }).populate({
             path: 'comments',
             sort: {createdAt: -1},
@@ -288,21 +288,35 @@ export const bookmarkPost = async(req, res) => {
         }
 
         const user = await User.findById(authorId)
+        let message, type;
         if(user.bookmarks.includes(post._id)){
             //already bookmarked, remove from the array
             await user.updateOne({$pull:{bookmarks: post._id}})
-            await user.save()
-
-            return res.status(201).json({type: 'unsaved', mesage: 'Post removed from Bookmark'})
+            message = "Post removed from bookmarks"
+            type = "UNBOOKMARKED"
         }
         else{
             //add to bookmarks
             await user.updateOne({$addToSet: {bookmarks: post._id}})
-            await user.save()
-        
-            return res.status(200).json({type: 'saved', message: 'Post bookmarked', success: true})
+            //await user.save()
+            message = "Post bookmarked successfully"
+            type = "BOOKMARKED"
         }
+
+        const updatedUser = await User.findById(authorId).populate('bookmarks')
+
+        return res.status(200).json({
+            success: true,
+            message,
+            type,
+            bookmarks: updatedUser.bookmarks
+        })
+
     } catch (error) {
         console.log(error)
+        return res.status(500).json({
+            success: false,
+            message: 'Something went wrong'
+        })
     }
 }

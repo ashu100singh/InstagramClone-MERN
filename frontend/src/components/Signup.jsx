@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
 import { Label } from './ui/label'
@@ -7,9 +7,10 @@ import { Button } from './ui/button'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
+import { useSelector } from 'react-redux'
 
 const Signup = () => {
-
+    const {user} = useSelector((store) => store.auth)
     const [input, setInput] = useState({
         username: '',
         email: '',
@@ -49,6 +50,12 @@ const Signup = () => {
             setLoading(false)
         }
     }
+
+    useEffect(() => {
+            if(user){
+                navigate('/')
+            }
+    }, []);
 
   return (
     <div className='flex w-screen h-screen items-center justify-center'>

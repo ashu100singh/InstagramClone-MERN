@@ -13,27 +13,29 @@ import { io } from "socket.io-client";
 import { setSocket } from "./redux/socketSlice.js";
 import { setOnlineUsers } from "./redux/chatSlice.js";
 import { setLikeNotification } from "./redux/rtnSlice.js";
+import ProtectedRoutes from "./components/ProtectedRoutes";
+import NotFound from "./components/NotFound";
 
 const browserRouter = createBrowserRouter([
     {
         path: "/",
-        element: <MainLayout />,
+        element: <ProtectedRoutes><MainLayout/></ProtectedRoutes> ,
         children: [
             {
                 path: "/",
-                element: <Home />,
+                element: <ProtectedRoutes><Home/></ProtectedRoutes>,
             },
             {
                 path: "/profile/:id",
-                element: <Profile />,
+                element: <ProtectedRoutes><Profile/></ProtectedRoutes>,
             },
             {
                 path: "/profile/edit",
-                element: <EditProfile />,
+                element: <ProtectedRoutes><EditProfile/></ProtectedRoutes>,
             },
             {
                 path: "/chat",
-                element: <ChatPage />,
+                element: <ProtectedRoutes><ChatPage/></ProtectedRoutes>,
             },
         ],
     },
@@ -45,6 +47,10 @@ const browserRouter = createBrowserRouter([
         path: "/signup",
         element: <Signup />,
     },
+    { 
+        path: "*", 
+        element: <NotFound /> 
+    },
 ]);
 
 const App = () => {
@@ -53,34 +59,36 @@ const App = () => {
     const dispatch = useDispatch()
 
     useEffect(() => {
-        if (user) {
-            const socketio = io("http://localhost:8000", {
-                query: {
-                    userId: user?._id,
-                },
-                transports: ['websocket']
-            })
-            
-            dispatch(setSocket(socketio));
+    if (user) {
+        const socketio = io("http://localhost:8000", {
+            query: { userId: user?._id },
+            transports: ["websocket"]
+        });
 
-            socketio.on('getOnlineUsers', (onlineUsers) => {
-                dispatch(setOnlineUsers(onlineUsers));
-            })
+        // ✅ Save the socket in Redux
+        dispatch(setSocket(socketio));
 
-            socketio.on("notification", (notification) => {
-                dispatch(setLikeNotification(notification));
-            });
+        // ✅ Get online users list
+        socketio.on("getOnlineUsers", (onlineUsers) => {
+            dispatch(setOnlineUsers(onlineUsers));
+        });
 
+        // ✅ Get new notifications in real-time
+        socketio.on("notification", (notification) => {
+            dispatch(setLikeNotification(notification));
+        });
 
-            return () => {
-                socketio.close();
-                dispatch(setSocket(null));
-            };
-        } else if(socket){
-            socket.close();
+        // ✅ Cleanup old socket connections
+        return () => {
+            socketio.disconnect();
             dispatch(setSocket(null));
-        }
-    }, [user, dispatch]);
+        };
+    } else if (socket) {
+        socket.disconnect();
+        dispatch(setSocket(null));
+    }
+}, [user, dispatch]);
+
 
     return (
         <>
