@@ -45,7 +45,6 @@ const LeftSidebar = () => {
         dispatch(setPosts([]));
         navigate("/login", { replace: true });
         toast.success(res.data.message);
-        console.log("Logged out successfullt",user)
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Logout failed!");

@@ -18,7 +18,6 @@ const Post = ({ post }) => {
 
     const { user } = useSelector((store) => store.auth);
     const { posts } = useSelector((store) => store.post);
-    console.log(user)
 
     const [text, setText] = useState("");
     const [openDialog, setOpenDialog] = useState(false);
@@ -88,7 +87,6 @@ const Post = ({ post }) => {
             );
 
             if (res.data.success) {
-                console.log(text);
                 const updatedCommentData = [...comment, res.data.comment];
                 setComment(updatedCommentData);
 
